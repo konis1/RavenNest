@@ -1,5 +1,10 @@
 
-from ravennest.api.coingecko import get_current_price, get_historical_data
+from unittest.mock import patch
+from ravennest.api.coingecko import (
+    get_current_price,
+    get_historical_data,
+    calculate_portfolio_value,
+)
 
 
 class TestGetCurrentPrice:
@@ -13,6 +18,16 @@ class TestGetCurrentPrice:
         # Tester la fonction
         price = get_current_price("bitcoin", "eur")
         assert price == 50000, "Price should be 50000 for valid response"
+
+    def test_valid_response_multiple_cryptos(self, requests_mock):
+        mock_url = "https://api.coingecko.com/api/v3/simple/price"
+        mock_response = {"bitcoin": {"eur": 50000}, "ethereum": {"eur": 4000}}
+        requests_mock.get(mock_url, json=mock_response)
+
+        price_btc = get_current_price("bitcoin", "eur")
+        price_eth = get_current_price("ethereum", "eur")
+        assert price_btc == 50000, "Price should be 50000 for Bitcoin"
+        assert price_eth == 4000, "Price should be 4000 for Ethereum"
 
     def test_invalid_response_structure(self, requests_mock):
         # Simuler une réponse invalide de l'API
@@ -47,4 +62,44 @@ class TestGetHistoricalData:
         # Tester la fonction
         data = get_historical_data("bitcoin")
         assert len(data) == 2, "Expected two data points"
-        # assert data["prices"[0][1] == 69702.3087473573, "First price should match"
+        assert data[0]["price"] == 69702.3087473573, "First price should match"
+
+    def test_invalid_response_structure(self, requests_mock):
+        # Simuler une réponse invalide de l'API
+        mock_url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+        mock_response = {}  # Structure inattendue
+        requests_mock.get(mock_url, json=mock_response)
+
+        # Tester la fonction
+        data = get_historical_data("bitcoin")
+        assert data is None, "Data should be None for invalid response structure"
+
+    def test_http_error(self, requests_mock):
+        # Simuler une erreur HTTP (404 Not Found)
+        mock_url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+        requests_mock.get(mock_url, status_code=404)
+
+        # Tester la fonction
+        data = get_historical_data("bitcoin")
+        assert data is None, "Price should be None for HTTP error"
+
+
+class TestCalculatePortfolioValue:
+    @patch("ravennest.api.coingecko.get_current_price")
+    def test_calculate_portfolio_value_valid(self, mock_get_current_price):
+        # Mock responses for crypto prices
+        mock_get_current_price.side_effect = lambda crypto, currency: {
+            "bitcoin": 50000,
+            "ethereum": 4000,
+        }.get(crypto, None)
+
+        # Test data
+        portfolio = {"bitcoin": 0.5, "ethereum": 2}
+        total_value, detailed_values = calculate_portfolio_value(portfolio, "usd")
+
+        # Assertions
+        assert total_value == 58000.00, "Total value should be 58,000 USD"
+        assert detailed_values == {
+            "bitcoin": 25000.00,
+            "ethereum": 8000.00
+        }, "Detailed values do not match expected results"
