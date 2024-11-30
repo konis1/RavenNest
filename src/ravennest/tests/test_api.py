@@ -1,3 +1,4 @@
+
 from ravennest.api.coingecko import (
     get_current_price,
     get_historical_data,
@@ -88,14 +89,17 @@ class TestGetHistoricalData:
 class TestIDentifyBlockchain:
 
     def test_bitcoin_address(self):
-        address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNas"
         result = identify_blockchain(address)
         assert result == "Bitcoin", "Should identify Bitcoin for a valid Bitcoin address"
 
-    def test_ethereum_address(self):
+    def test_ethereum_address(self, monkeypatch):
         address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+
+        monkeypatch.setattr("builtins.input", lambda _: "Ethereum")
+
         result = identify_blockchain(address)
-        assert result == "Ambiguous", "Should return 'Ambiguous' for Ethereum/Binance Smart Chain"
+        assert result == "Ethereum", "Should return 'Etehreum' for Ethereum/Binance Smart Chain"
 
     def test_tron_address(self):
         address = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"

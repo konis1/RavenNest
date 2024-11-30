@@ -206,14 +206,10 @@ def identify_blockchain(address: str) -> str:
 
     for blockchain, format in BLOCKCHAIN_FORMATS.items():
         prefixes: List[str] = format.get("prefixes", [])
-        lengths: List[int] = format.get("length", [])
+        lengths: List[int] = format.get("lengths", [])
 
-        if prefixes and not any(
-                address.startswith(prefix) for prefix in prefixes
-                ):
-            continue
-
-        if lengths and len(address) not in lengths:
+        if (prefixes and not any(address.startswith(prefix) for prefix in prefixes)) or \
+                (lengths and len(address) not in lengths):
             continue
 
         possible_blockchains.append(blockchain)
