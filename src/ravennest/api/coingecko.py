@@ -140,3 +140,94 @@ def calculate_portfolio_value(
         else:
             print(f"Could not fetch price for {crypto}")
     return total_value, detailed_values
+
+
+def get_portfolio_from_address(wallet_address: str, blockchain: str = "ethereum") -> Dict[str, float]:
+    """
+    Fetch the balances of a wallet address for a specific blockchain.
+
+    Args:
+        wallet_address (str): The public address of the wallet.
+        blockchain (str, optional): The blockchain to query (default is "ethereum").
+
+    Returns:
+        Dict[str, float]: A dictionary of crypto IDs and their respective balances.
+    """
+    # Call a blockchain API to fetch balances
+    pass
+
+
+def identify_blockchain(address: str) -> str:
+    """
+     Identify the blockchain associated with a given wallet address.
+
+    This function attempts to match the wallet address to a known blockchain
+    format based on predefined prefixes and address lengths. If the address
+    corresponds to multiple blockchains (ambiguous), it prompts the user to
+    select the correct blockchain. If the address is not recognized, it allows
+    the user to manually specify the blockchain.
+
+    Args:
+        address (str): The wallet address to identify.
+
+    Returns:
+        str: The name of the blockchain, or:
+             - "Unknown" if no match is found and the user does not provide input.
+             - The user-provided blockchain name if specified manually.
+
+    Example:
+        >>> identify_blockchain("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")
+        'Bitcoin'
+
+        >>> identify_blockchain("0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
+        Ambiguous address. Possible blockchains: Ethereum, Binance Smart Chain
+        Please select the blockchain for address 0x742d35Cc6634C0532925a3b844Bc454e4438f44e: Ethereum
+        'Ethereum'
+
+        >>> identify_blockchain("abcdef123456")
+        Address abcdef123456 not recognized. Please specify the blockchain.
+        Enter blockchain name: CustomChain
+        'CustomChain'
+    """
+    BLOCKCHAIN_FORMATS = {
+        "Bitcoin": {"prefixes": ["1", "3", "bc1"], "lengths": [26, 35]},
+        "Ethereum": {"prefixes": ["0x"], "lengths": [42]},
+        "Binance Smart Chain": {"prefixes": ["0x"], "lengths": [42]},
+        "Litecoin": {"prefixes": ["L", "M", "ltc1"], "lengths": [26, 35]},
+        "Bitcoin Cash": {"prefixes": ["q", "p"], "lengths": [42]},
+        "Tron": {"prefixes": ["T"], "lengths": [34]},
+        "Solana": {"prefixes": [], "lengths": [44]},
+        "Cardano": {"prefixes": ["addr1"], "lengths": [58]},
+        "Polkadot": {"prefixes": [], "lengths": [48]},
+        "Dogecoin": {"prefixes": ["D"], "lengths": [34]},
+        "Cosmos": {"prefixes": ["cosmos1"], "lengths": [45]},
+    }
+    possible_blockchains: List[str] = []
+
+    for blockchain, format in BLOCKCHAIN_FORMATS.items():
+        prefixes: List[str] = format.get("prefixes", [])
+        lengths: List[int] = format.get("length", [])
+
+        if prefixes and not any(
+                address.startswith(prefix) for prefix in prefixes
+                ):
+            continue
+
+        if lengths and len(address) not in lengths:
+            continue
+
+        possible_blockchains.append(blockchain)
+
+    if len(possible_blockchains) == 1:
+        return possible_blockchains[0]
+    elif len(possible_blockchains) > 1:
+        print(f"Ambiguous address. Possible blockchains: {', '.join(possible_blockchains)}")
+        while True:
+            choice = input(f"Please select the blockchain for address {address}: ")
+            if choice in possible_blockchains:
+                return choice
+            print("Invalid choice. Please select from the listed blockchains.")
+    else:
+        # Unknown address: Prompt user to enter manually
+        print(f"Address {address} not recognized. Please specify the blockchain.")
+        return input("Enter blockchain name: ")

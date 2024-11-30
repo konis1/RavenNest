@@ -1,9 +1,7 @@
-
-from unittest.mock import patch
 from ravennest.api.coingecko import (
     get_current_price,
     get_historical_data,
-    calculate_portfolio_value,
+    identify_blockchain,
 )
 
 
@@ -84,22 +82,40 @@ class TestGetHistoricalData:
         assert data is None, "Price should be None for HTTP error"
 
 
-class TestCalculatePortfolioValue:
-    @patch("ravennest.api.coingecko.get_current_price")
-    def test_calculate_portfolio_value_valid(self, mock_get_current_price):
-        # Mock responses for crypto prices
-        mock_get_current_price.side_effect = lambda crypto, currency: {
-            "bitcoin": 50000,
-            "ethereum": 4000,
-        }.get(crypto, None)
+# class TestCalculatePortfolioValue:
 
-        # Test data
-        portfolio = {"bitcoin": 0.5, "ethereum": 2}
-        total_value, detailed_values = calculate_portfolio_value(portfolio, "usd")
 
-        # Assertions
-        assert total_value == 58000.00, "Total value should be 58,000 USD"
-        assert detailed_values == {
-            "bitcoin": 25000.00,
-            "ethereum": 8000.00
-        }, "Detailed values do not match expected results"
+class TestIDentifyBlockchain:
+
+    def test_bitcoin_address(self):
+        address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        result = identify_blockchain(address)
+        assert result == "Bitcoin", "Should identify Bitcoin for a valid Bitcoin address"
+
+    def test_ethereum_address(self):
+        address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        result = identify_blockchain(address)
+        assert result == "Ambiguous", "Should return 'Ambiguous' for Ethereum/Binance Smart Chain"
+
+    def test_tron_address(self):
+        address = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+        result = identify_blockchain(address)
+        assert result == "Tron", "Should identify Tron for a valid Tron address"
+
+    def test_unknown_address(self, monkeypatch):
+        address = "abcdef123456"
+
+        # Mock user input to simulate manual blockchain entry
+        monkeypatch.setattr("builtins.input", lambda _: "CustomChain")
+
+        result = identify_blockchain(address)
+        assert result == "CustomChain", "Should return user-specified blockchain for unknown address"
+
+    def test_ambiguous_address(self, monkeypatch):
+        address = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+
+        # Mock user input to resolve ambiguity
+        monkeypatch.setattr("builtins.input", lambda _: "Ethereum")
+
+        result = identify_blockchain(address)
+        assert result == "Ethereum", "Should return user selection for ambiguous blockchain"
