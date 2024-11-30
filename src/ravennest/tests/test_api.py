@@ -104,7 +104,7 @@ class TestIDentifyBlockchain:
     def test_tron_address(self):
         address = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
         result = identify_blockchain(address)
-        assert result == "Tron", "Should identify Tron for a valid Tron address"
+        assert result == "TRON", "Should identify Tron for a valid Tron address"
 
     def test_unknown_address(self, monkeypatch):
         address = "abcdef123456"

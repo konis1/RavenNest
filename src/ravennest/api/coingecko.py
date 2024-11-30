@@ -193,15 +193,25 @@ def identify_blockchain(address: str) -> str:
         "Bitcoin": {"prefixes": ["1", "3", "bc1"], "lengths": [26, 35]},
         "Ethereum": {"prefixes": ["0x"], "lengths": [42]},
         "Binance Smart Chain": {"prefixes": ["0x"], "lengths": [42]},
-        "Litecoin": {"prefixes": ["L", "M", "ltc1"], "lengths": [26, 35]},
-        "Bitcoin Cash": {"prefixes": ["q", "p"], "lengths": [42]},
-        "Tron": {"prefixes": ["T"], "lengths": [34]},
-        "Solana": {"prefixes": [], "lengths": [44]},
         "Cardano": {"prefixes": ["addr1"], "lengths": [58]},
+        "Solana": {"prefixes": [], "lengths": [44]},
         "Polkadot": {"prefixes": [], "lengths": [48]},
-        "Dogecoin": {"prefixes": ["D"], "lengths": [34]},
+        "Avalanche": {"prefixes": ["X-avax1", "P-avax1", "C-avax1"], "lengths": [42]},
+        "TRON": {"prefixes": ["T"], "lengths": [34]},
+        "Polygon": {"prefixes": ["0x"], "lengths": [42]},
+        "Litecoin": {"prefixes": ["L", "M", "ltc1"], "lengths": [26, 35]},
+        "Chainlink": {"prefixes": ["0x"], "lengths": [42]},
+        "Stellar": {"prefixes": ["G"], "lengths": [56]},
         "Cosmos": {"prefixes": ["cosmos1"], "lengths": [45]},
+        "Algorand": {"prefixes": [], "lengths": [58]},
+        "Tezos": {"prefixes": ["tz1", "tz2", "tz3", "KT1"], "lengths": [36]},
+        "VeChain": {"prefixes": ["0x"], "lengths": [42]},
+        "EOS": {"prefixes": [], "lengths": [42]},
+        "NEAR Protocol": {"prefixes": [], "lengths": [64]},
+        "Hedera": {"prefixes": ["0.0."], "lengths": [15]},
+        "Elrond": {"prefixes": ["erd1"], "lengths": [62]}
     }
+
     possible_blockchains: List[str] = []
 
     for blockchain, format in BLOCKCHAIN_FORMATS.items():
