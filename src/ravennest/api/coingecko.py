@@ -237,3 +237,63 @@ def identify_blockchain(address: str) -> str:
         # Unknown address: Prompt user to enter manually
         print(f"Address {address} not recognized. Please specify the blockchain.")
         return input("Enter blockchain name: ")
+
+
+def fetch_cryptos_below_ath(percentage_below: float) -> list:
+    """
+    Récupère une liste de cryptos dont la valeur actuelle est x% inférieure à leur ATH,
+    triées par market cap.
+
+    :param percentage_below: Pourcentage inférieur à l'ATH (ex: 10 pour 10%)
+    :return: Liste des cryptos avec les infos nécessaires
+    """
+    url = "https://api.coingecko.com/api/v3/coins/markets"
+    params = {
+        "vs_currency": "usd",
+        "order": "market_cap_desc",
+        "per_page": 250,  # Nombre max d'entrées par page
+        "page": 1,
+        "sparkline": False
+    }
+    max_page = 3
+    result = []
+    try:
+        while params["page"] <= max_page:
+            # Requête API pour la page actuelle
+            response = requests.get(url, params=params)
+            response.raise_for_status()  # Lève une exception si la requête échoue
+            data = response.json()
+
+            # Si aucune donnée n'est renvoyée, arrêter la boucle
+            if not data:
+                break
+
+            # Filtrer les cryptos avec la condition sur le pourcentage en dessous de l'ATH
+            for coin in data:
+                current_price = coin.get("current_price", 0)
+                ath = coin.get("ath", 0)
+                market_cap = coin.get("market_cap", 0)
+
+                if ath > 0 and current_price > 0:
+                    drop_percentage = ((ath - current_price) / ath) * 100
+                    if drop_percentage >= percentage_below:
+                        result.append({
+                            "name": coin["name"],
+                            "symbol": coin["symbol"].upper(),
+                            "current_price": current_price,
+                            "ath": ath,
+                            "market_cap": market_cap,
+                            "drop_percentage": round(drop_percentage, 2)
+                        })
+
+            # Passer à la page suivante
+            params["page"] += 1
+            print(f"Page {params['page'] - 1} traitée avec succès.")
+
+    except requests.RequestException as e:
+        print(f"Erreur lors de la récupération des données : {e}")
+        return []
+
+    # Trier par market cap (décroissant)
+    result_sorted = sorted(result, key=lambda x: x["market_cap"], reverse=True)
+    return result_sorted
